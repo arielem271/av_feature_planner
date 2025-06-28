@@ -1,21 +1,26 @@
 import streamlit as st
-from db import SessionLocal, Feature, init_db
+from db import SessionLocal, Feature
 
 def show_feature_edit():
-    st.header("✏️ Feature Editor")
-    init_db()
+    st.title("✏️ Edit Features")
     db = SessionLocal()
-    name = st.text_input("Feature Name")
-    desc = st.text_area("Feature Description")
-    status = st.selectbox("Status", ["Planning", "Development", "Completed"])
-    if st.button("Add / Update Feature"):
-        existing = db.query(Feature).filter(Feature.name == name).first()
-        if existing:
-            existing.description = desc
-            existing.status = status
-            st.success("Feature updated.")
-        else:
-            f = Feature(name=name, description=desc, status=status)
-            db.add(f)
-            st.success("Feature added.")
-        db.commit()
+    features = db.query(Feature).all()
+
+    if not features:
+        st.info("No features to edit.")
+        return
+
+    names = [f.name for f in features]
+    selected = st.selectbox("Select feature to edit", names)
+    feature = db.query(Feature).filter(Feature.name == selected).first()
+
+    if feature:
+        feature.status = st.selectbox("Status", ["Planning", "Development", "Completed"], index=["Planning", "Development", "Completed"].index(feature.status) if feature.status else 0)
+        feature.quality = st.text_area("Quality", feature.quality or "")
+        feature.timeline_required = st.text_input("Timeline Required", feature.timeline_required or "")
+        feature.timeline_planned = st.text_input("Timeline Planned", feature.timeline_planned or "")
+        feature.timeline_committed = st.text_input("Timeline Committed", feature.timeline_committed or "")
+
+        if st.button("💾 Save Updates"):
+            db.commit()
+            st.success("✅ Feature updated!")
