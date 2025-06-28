@@ -5,11 +5,8 @@ import pandas as pd
 def show_feature_view():
     st.title("📊 View Features")
     db = SessionLocal()
-    features = db.query(Feature).all()
 
-    if not features:
-        st.info("No features found.")
-        return
+    features = db.query(Feature).all()
 
     data = [{
         "Name": f.name,
@@ -19,5 +16,12 @@ def show_feature_view():
         "Quality": f.quality
     } for f in features]
 
-    df = pd.DataFrame(data).sort_values("Updated At", ascending=False)
+    df = pd.DataFrame(data)
     st.dataframe(df)
+
+    for f in features:
+        if st.button(f"🗑 Remove '{f.name}'"):
+            db.delete(f)
+            db.commit()
+            st.success(f"Removed feature {f.name}")
+            st.experimental_rerun()
