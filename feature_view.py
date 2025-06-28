@@ -1,5 +1,6 @@
 import streamlit as st
 from db import SessionLocal, Feature
+import pandas as pd
 
 def show_feature_view():
     st.title("📊 View Features")
@@ -10,12 +11,13 @@ def show_feature_view():
         st.info("No features found.")
         return
 
-    for f in features:
-        st.markdown(f"### {f.name}")
-        st.markdown(f"**Goal:** {f.goal or ''}")
-        st.markdown(f"**Customer/Internal:** {f.customer_internal or ''}")
-        st.markdown(f"**Status:** {f.status or ''}")
-        st.markdown(f"**Usefulness:** {f.usefulness or ''}")
-        st.markdown(f"**Quality:** {f.quality or ''}")
-        st.markdown(f"**Timelines:** Required: {f.timeline_required or ''}, Planned: {f.timeline_planned or ''}, Committed: {f.timeline_committed or ''}")
-        st.divider()
+    data = [{
+        "Name": f.name,
+        "Updated At": f.updated_at,
+        "Status": f.status,
+        "Usefulness": f.usefulness,
+        "Quality": f.quality
+    } for f in features]
+
+    df = pd.DataFrame(data).sort_values("Updated At", ascending=False)
+    st.dataframe(df)
