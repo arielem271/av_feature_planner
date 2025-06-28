@@ -1,95 +1,52 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 
-DATABASE_URL = "sqlite:///app_data.db"
-engine = create_engine(DATABASE_URL)
+# Setup DB
+engine = create_engine("sqlite:///app_data.db")
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
+# Feature model
 class Feature(Base):
     __tablename__ = "features"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     theme = Column(String)
-    goal = Column(Text)
+    goal = Column(String)
     usefulness = Column(Integer)
-    quality = Column(Text)
+    quality = Column(String)
     timeline_required = Column(String)
 
-    # SYS1 per platform
-    sys1_61_link = Column(Text)
-    sys1_61_total = Column(Integer)
-    sys1_61_in_review = Column(Integer)
-    sys1_61_approved = Column(Integer)
-    sys1_61_rejected = Column(Integer)
-    sys1_61_covered_sys2 = Column(Integer)
-    sys1_61_partly_agreed = Column(Integer)
-    sys1_61_to_be_clarified = Column(Integer)
-    sys1_61_implemented = Column(Integer)
+    requirements = relationship("Requirement", back_populates="feature")
+    alignments = relationship("Alignment", back_populates="feature")
 
-    sys1_62_link = Column(Text)
-    sys1_62_total = Column(Integer)
-    sys1_62_in_review = Column(Integer)
-    sys1_62_approved = Column(Integer)
-    sys1_62_rejected = Column(Integer)
-    sys1_62_covered_sys2 = Column(Integer)
-    sys1_62_partly_agreed = Column(Integer)
-    sys1_62_to_be_clarified = Column(Integer)
-    sys1_62_implemented = Column(Integer)
+# Requirement model
+class Requirement(Base):
+    __tablename__ = "requirements"
 
-    sys1_63_link = Column(Text)
-    sys1_63_total = Column(Integer)
-    sys1_63_in_review = Column(Integer)
-    sys1_63_approved = Column(Integer)
-    sys1_63_rejected = Column(Integer)
-    sys1_63_covered_sys2 = Column(Integer)
-    sys1_63_partly_agreed = Column(Integer)
-    sys1_63_to_be_clarified = Column(Integer)
-    sys1_63_implemented = Column(Integer)
+    id = Column(Integer, primary_key=True, index=True)
+    feature_id = Column(Integer, ForeignKey("features.id"))
+    spec = Column(String)
+    verification = Column(String)
+    status = Column(String)
 
-    sys1_64_link = Column(Text)
-    sys1_64_total = Column(Integer)
-    sys1_64_in_review = Column(Integer)
-    sys1_64_approved = Column(Integer)
-    sys1_64_rejected = Column(Integer)
-    sys1_64_covered_sys2 = Column(Integer)
-    sys1_64_partly_agreed = Column(Integer)
-    sys1_64_to_be_clarified = Column(Integer)
-    sys1_64_implemented = Column(Integer)
+    feature = relationship("Feature", back_populates="requirements")
 
-    # SYS2
-    sys2_link = Column(Text)
-    sys2_defined = Column(Integer)
-    sys2_implemented = Column(Integer)
-    sys2_verified = Column(Integer)
+# Alignment model
+class Alignment(Base):
+    __tablename__ = "alignments"
 
-    # Owner alignment
-    avx_status = Column(String)
-    avx_quality = Column(String)
-    avx_velocity = Column(String)
+    id = Column(Integer, primary_key=True, index=True)
+    feature_id = Column(Integer, ForeignKey("features.id"))
+    system = Column(String)
+    design_status = Column(String)
+    design_upload = Column(String)
+    polarion_link = Column(String)
 
-    policy_status = Column(String)
-    policy_quality = Column(String)
-    policy_velocity = Column(String)
+    feature = relationship("Feature", back_populates="alignments")
 
-    perception_status = Column(String)
-    perception_quality = Column(String)
-    perception_velocity = Column(String)
-
-    # Triggered alignment
-    avv_swe5_status = Column(String)
-    avv_swe5_quality = Column(String)
-    avv_swe5_velocity = Column(String)
-
-    arch_sys3_status = Column(String)
-    arch_sys3_quality = Column(String)
-    arch_sys3_velocity = Column(String)
-
-    safety_sys2_swe1_status = Column(String)
-    safety_sys2_swe1_quality = Column(String)
-    safety_sys2_swe1_velocity = Column(String)
-
+# Initialize DB (create tables)
 def init_db():
     Base.metadata.create_all(bind=engine)
